@@ -389,14 +389,18 @@ def dearm_sam(sam_gz, mips_file):
             "XO:Z:%s" % oseq,
             "OC:Z:%s" % aln.cigar,
             ])
+        
+        lig_len = mip['lig_probe_stop'] - mip['lig_probe_start'] + 1 # it uses base1
+        ext_len = mip['ext_probe_stop'] - mip['ext_probe_start'] + 1 # it uses base1
 
-        lig_len = mip['lig_probe_stop'] - mip['lig_probe_start']
-        ext_len = mip['ext_probe_stop'] - mip['ext_probe_start']
-
-        if idx in (2, 3):
-            aln.trim(lig_len, ext_len)
-        elif idx in (0, 1):
-            aln.trim(ext_len, lig_len)
+        if idx==0:
+            aln.trim(1,lig_len) #removing lig_len from the right side of mapped R1- and 1bp from left
+        elif idx==1:
+            aln.trim(ext_len, 1) #removing ext_len from the left side of mapped R2+ and 1bp from right
+        elif idx==2:
+            aln.trim(lig_len, 1) #removing lig_len from the left side of mapped R1+ and 1bp from right
+        elif idx==3:
+            aln.trim(1, ext_len) #removing ext_len from the right side of mapped R2- and 1bp from left
 
         if len(aln.seq) < 20: # weird cigar like 120S28M
             aln.seq, aln.qual, aln.cigar, aln.pos = oseq, oqual, ocigar, opos
